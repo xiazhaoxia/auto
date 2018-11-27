@@ -1,0 +1,46 @@
+/*The path of your debug objects*/
+#OBJ_PATH =\\slcnas529.us.oracle.com\engfs02\8.2\patch\16.0.0.0\23051\debug\w32\all
+#PREFIX_NUM = 23051
+#BUILD_NUM  = 23051
+
+#CMDOUTPUT = FALSE
+
+/*Your debug version is before 8.1 or not*/
+#BEFORE_V8.1 = FALSE
+
+/*Include objs or not*/
+#INCLUDE_OBJ = TRUE
+
+/*Your debug Env root path*/
+#DRIVER = C
+
+/*DB user and pwd*/
+#USER_NAME = SADMIN
+#PASSWORD  = SADMIN
+
+/*DB type, support ORACLE and MSSQL, TBLO=dbo for MSSQL*/
+#DBTYPE = ORACLE
+#CONNECT_STRING = ORALD125  
+#TBLO   = 	ORALD125  
+#DBHOST =   slc01hld  
+#DBINST =   qahld1 
+#DBPORT   = 1551
+#DRIVERNAME =Siebel Oracle90
+
+/*Debug Env language*/
+#LANGUAGE = ENU
+#DEBUG    = TRUE
+
+/*Your File System*/
+#FILESYSTEM = \\slc01nnl\sfhome
+#FILESYSTEM_NS = \\\\slc01nnl\\sfhome
+
+#SIAorHOR = SIA
+#HOSTNAME = slc01nnl
+#ORACLE_HOME = C:\app\xrui\product\11.2.0\dbhome_1
+#VS_HOME = C:\Program Files (x86)\Microsoft Visual Studio 11.0
+#VIEW_NAME = xrui_dev_16
+#COMPS=System,Remote,SiebAnywhere,CallCenter:SCCObjMgr_ENU,LifeSciences,HandheldSyncSIS,HandheldSync,MobileSync
+
+
+#Author by XRUI

@@ -1,0 +1,47 @@
+/*The path of your debug objects*/
+#OBJ_PATH = \\slcnas529.us.oracle.com\engfs02\8.1\quickfix\16.7.0.0\23057PATCHSET7\debug\w32\all
+#PREFIX_NUM = 23057PATCHSET7
+#BUILD_NUM = 23057PATCHSET7
+
+#CMDOUTPUT = FALSE
+
+/*Your debug version is before 8.1 or not*/
+#BEFORE_V8.1 = FALSE
+
+/*Include objs or not*/
+#INCLUDE_OBJ = TRUE
+
+/*Your debug Env root path*/
+#DRIVER = C
+
+/*DB user and pwd*/
+#USER_NAME = SADMIN
+#PASSWORD  = MSSQL
+
+/*DB type, support ORACLE and MSSQL, TBLO=dbo for MSSQL*/
+#DBTYPE = MSSQL
+#CONNECT_STRING = MSMYB158
+#TBLO   = 	dbo
+#DBHOST =   slc03myb
+#DBINST =   bin_inst1
+#DRIVERNAME = SQL Server
+
+
+
+/*Debug Env language*/
+#LANGUAGE = ENU
+#DEBUG    = TRUE
+
+/*Your File System*/
+#FILESYSTEM = \\slc10yvj\sfhome
+#FILESYSTEM_NS = \\\\slc10yvj\\sfhome
+
+#SIAorHOR = SIA
+#HOSTNAME = slc10yvj
+#ORACLE_HOME = C:\app\xrui\product\11.2.0\dbhome_1
+#VS_HOME = C:\Program Files (x86)\Microsoft Visual Studio 11.0
+#VIEW_NAME = JIANSHAO_view_23057_p7
+#COMPS=System,Remote,SiebAnywhere,CallCenter:SCCObjMgr_ENU,LifeSciences,HandheldSyncSIS,HandheldSync,EAI,MobileSync,FieldSvc:SFSObjMgr_enu
+
+
+#Author by XRUI
