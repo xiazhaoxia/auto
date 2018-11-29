@@ -12,7 +12,7 @@ apply plugin: 'groovy'
 def server="slc12eex"
 def buildVersion="23088"
 def tempSrc="\\\\slc15dze\\debug-env-template\\$buildVersion-debug-server-template"
-def jreSrc = "\\\\slcnas529.us.oracle.com\\engfs02\\tools\\jdk1.8\\win32\\jre8"
+def jreSrc = "\\\\slcnas529.us.oracle.com\\engfs02\\tools\\jdk1.8\\win32\\jre8.zip"
 
 def buildLocation="C:\\$buildVersion\\siebel"
 def javacontainerTarget="$buildLocation\\javacontainer"
@@ -22,9 +22,31 @@ def debugTools="mydist"
 
 
 
-task copyJRE(type: Copy) {
-    from jreSrc
-    into file("$buildLocation\\jre")
+task copyWorkAround(type:Copy){
+	if("$buildVersion"=="23088"){
+		
+		
+		from file("\\\\slc12ecr.us.oracle.com\\ting\\shared\\dll_23088")
+		into "z:\\siebel\\bin\\w32ud"
+		doLast{
+			println "copy workaround for $buildVersion"
+		}
+
+	}
+}
+
+
+
+task copyJRE(type: Copy,dependsOn:"copyWorkAround") {
+    from zipTree("$jreSrc") 
+    into "dest" 
+    doLast{
+    	file("$buildLocation\\jre").mkdirs()
+    	copy{
+    		from "dest\\jre"
+    		into "$buildLocation\\jre"
+    	}
+    }
 }
 
 task unzipJavaContainer(type: Copy,dependsOn:"copyJRE") {
@@ -113,13 +135,13 @@ task copyswsmwar(type:Copy,dependsOn:copygtwywar,description:"copy Siebel war to
 
 def fileReader(path, oldStr, newStr) {
 	def readerString = "";
-	new File(path).withReader('UTF-8') { reader ->
+	new File(path).withReader('UTF-8'){ reader ->
 		reader.eachLine {
 			if (it.find(oldStr)) {
 				it = it.replace(oldStr, newStr)
 			}
 			readerString <<= it
-			readerString << '\n'
+			readerString << '\r\n'
 		}
 		return readerString
 	}
@@ -127,13 +149,15 @@ def fileReader(path, oldStr, newStr) {
 
 def fileReader(path, oldStr, newStr,key) {
 	def readerString = "";
-	new File(path).withReader('UTF-8') { reader ->
+	new File(path).withReader('UTF-8'){ reader ->
 		reader.eachLine {
 			if (it.find(oldStr) && it.find(key)) {
 				it = it.replace(oldStr, newStr)
 			}
 			readerString <<= it
-			readerString << '\n'
+			readerString << '\r\n'
+
+
 		}
 		return readerString
 	}
@@ -145,7 +169,7 @@ def fileReader(path, oldStr, newStr,key) {
 //写文件
 
 def fileWrite(path, stringBuffer) {
-	new File(path).withWriter('UTF-8') {
+	new File(path).withWriter('UTF-8'){
 		within ->
 		within.append(stringBuffer)
 	}
@@ -186,12 +210,7 @@ def backfile(src,target,name){
 	
 }
 
-task replaceGatePro(dependsOn:copyswsmwar) {
-	def strBuffer = fileReader("$gtwyTarget\\webapps\\gateway.properties", "slc00xyz", "$server");
-	fileWrite("$gtwyTarget\\webapps\\gateway.properties", strBuffer);
-}
-
-task copyJavaContainer(dependsOn:replaceGatePro) {	
+task copyJavaContainer(dependsOn:copyswsmwar) {	
 	//if target folder is readOnly, you should create target folder before copying the file
 	file("$javacontainerTarget").mkdirs()
 	copy{
@@ -201,23 +220,75 @@ task copyJavaContainer(dependsOn:replaceGatePro) {
 }
 
 
-//call the startdebug.bat written by xiongjian
-task run(type: Exec,dependsOn:"copyJavaContainer"){
-    workingDir = file("$fileStartDebug")
-    commandLine = ['cmd', '/c', 'startdebug.bat']
+def sieb="z:\\siebel\\javacontainer\\javacontainer-sieb"
+def gtwy="z:\\siebel\\javacontainer\\javacontainer-gtwy"
+def swsm="z:\\siebel\\javacontainer\\javacontainer-swsm"
 
-    doLast{
-    
-    	 if(execResult.exitValue == 0) {
-            println "Success"
-        } else {
-            println "Fail"
-        }
-    }
-    
+task resetProperty{
+	def readerString=""
+	def aiString=""
+	//def keys=["registryhostname=,registryusername=,registrypassword=,TLSGateway=,Gateway="].join("|")
+	def gpro=file("$gtwy\\webapps\\gateway.properties")
+
+	def greader=
+		gpro.withReader('UTF-8') { reader ->
+			reader.eachLine {
+				if(it.contains("registryhostname=")){
+					it="registryhostname="
+				}else if(it.contains("registryusername=")){
+					it="registryusername="
+				}else if(it.contains("registrypassword=")){
+					it="registrypassword="
+				}else if(it.contains("TLSGateway=")){
+					it="TLSGateway="
+				}else if(it.contains("Gateway=")){
+					it="Gateway="
+				}
+				readerString <<= it
+				readerString << '\r\n'
+			}
+			return readerString
+		}
+	gpro.withWriter('UTF-8'){
+		within ->
+		within.append(greader)
+	}
+
+	def aipro=file("$swsm\\webapps\\applicationinterface.properties")
+	def aireader=aipro.withReader('UTF-8') { reader ->
+			reader.eachLine {
+				if(it.contains("CGHostURI=")){
+					it="CGHostURI="
+				}else if(it.contains("SWSMProfile=")){
+					it="SWSMProfile="
+				}
+				aiString <<= it
+				aiString << '\r\n'
+			}
+			return aiString
+		}
+	aipro.withWriter('UTF-8'){
+		within ->
+		within.append(aireader)
+	}
+
 }
 
-task runperl(type:Exec,dependsOn:"run"){
+
+// task replaceGatePro(dependsOn:copyswsmwar) {
+// 	def strBuffer = fileReader("$gtwyTarget\\webapps\\gateway.properties", "slc00xyz", "$server");
+// 	fileWrite("$gtwyTarget\\webapps\\gateway.properties", strBuffer);
+// }
+task modifyfiles(dependsOn:"resetProperty"){
+	//modifyfile("z:\\siebel\\bin\\w32ud","SLC11XRN","$server","eapps.cfg")
+	//modifyfile("Z:\\siebel\\bin\\w32ud\\enu","SLC11XRN","$server","uagent.cfg")
+
+	modifyfile("z:\\siebel\\bin\\w32ud","localhost","$server:4330","nsprime1.bat")
+	modifyfileBySpec("z:\\siebel\\bin","localhost","$server:4330","srvrdefs.dat","Param: DSConnectString")	
+}
+
+
+task runperl(type:Exec,dependsOn:"modifyfiles"){
 	workingDir = file("z:\\siebel\\bin")
 
 	println "start executing the first time"
@@ -231,16 +302,7 @@ task runperl(type:Exec,dependsOn:"run"){
 
 
 
-task modifyfiles{
-	modifyfile("z:\\siebel\\bin\\w32ud","SLC11XRN","$server","eapps.cfg")
-	modifyfile("Z:\\siebel\\bin\\w32ud\\enu","SLC11XRN","$server","uagent.cfg")
-	modifyfile("z:\\siebel\\bin\\w32ud","localhost","$server:4330","nsprime1.bat")
-	modifyfileBySpec("z:\\siebel\\bin","localhost","$server:4330","srvrdefs.dat","Param: DSConnectString")	
-}
-
-
-
-task start(type:Exec){
+task startZoo(type:Exec){
 	workingDir=file("z:\\siebel\\bin\\w32ud")
 	commandLine = ['cmd', '/c', 'set JAVA_HOME=Z:\\Siebel\\jre']
 	commandLine = ['cmd', '/c', 'start m:\\siebel\\src\\3rdparty\\zookeeper\\server\\bin\\zkServer.cmd']
@@ -258,7 +320,7 @@ task start(type:Exec){
 
 }
 
-task startServer(type:Exec){
+task starts3(type:Exec){
 	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-sieb\\bin")
 
 	file("$workingDir\\startup.bat") << "\nexit 0";
@@ -278,7 +340,7 @@ task startServer(type:Exec){
 
 	
 }
-task startgtwyserver(type:Exec){
+task starts1(type:Exec){
 	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-gtwy\\bin")
 	file("$workingDir\\startup.bat") << "\nexit 0";
 	commandLine = ['cmd', '/c', 'startup.bat']
@@ -294,7 +356,7 @@ task startgtwyserver(type:Exec){
 }
 
 
-task startswsmserver(type:Exec){
+task starts2(type:Exec){
 	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-swsm\\bin")
 	file("$workingDir\\startup.bat") << "\nexit 0";
 	commandLine = ['cmd', '/c', 'startup.bat']
@@ -311,21 +373,36 @@ task startswsmserver(type:Exec){
 }
 
 
-task copyWorkAround(type:Copy){
-	if("$buildVersion"=="23088"){
-		println "copy workaround for $buildVersion"
-		
-		from file("\\\\slc12ecr.us.oracle.com\\ting\\shared\\dll_23088")
-		into "z:\\siebel\\bin\\w32ud"
 
-	}
-}
-
-task init(type:Exec,dependsOn:"copyWorkAround"){
+task init(type:Exec){
 
 	workingDir=file("z:\\siebel\\bin\\w32ud")
 	commandLine = ['cmd', '/c', 'nsprime1.bat']
 
+}
+
+
+
+task reset(type:Exec,dependsOn:"resetProperty"){
+	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-sieb\\bin")
+
+	file("$workingDir\\shutdown.bat") << "\nexit 0";
+	commandLine = ['cmd', '/c', 'shutdown.bat']
+
+	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-gtwy\\bin")
+	file("$workingDir\\shutdown.bat") << "\nexit 0";
+	commandLine = ['cmd', '/c', 'shutdown.bat']
+
+	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-swsm\\bin")
+	file("$workingDir\\shutdown.bat") << "\nexit 0";
+	commandLine = ['cmd', '/c', 'shutdown.bat']
+
+	workingDir=file("z:\\siebel\\bin")
+	commandLine = ['cmd', '/c', 'Taskkill /IM javaw.exe /F']
+	commandLine = ['cmd', '/c', 'Taskkill /IM java.exe /F']
+
+	delete fileTree("z:\\siebel\\bin\\version-2")
+	
 }
 
 
