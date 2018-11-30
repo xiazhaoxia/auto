@@ -25,7 +25,6 @@ def debugTools="mydist"
 task copyWorkAround(type:Copy){
 	if("$buildVersion"=="23088"){
 		
-		
 		from file("\\\\slc12ecr.us.oracle.com\\ting\\shared\\dll_23088")
 		into "z:\\siebel\\bin\\w32ud"
 		doLast{
@@ -38,15 +37,19 @@ task copyWorkAround(type:Copy){
 
 
 task copyJRE(type: Copy,dependsOn:"copyWorkAround") {
-    from zipTree("$jreSrc") 
-    into "dest" 
-    doLast{
-    	file("$buildLocation\\jre").mkdirs()
-    	copy{
-    		from "dest\\jre"
-    		into "$buildLocation\\jre"
-    	}
-    }
+	def isExist=file("$buildLocation\\jre").exists()
+	if(!"$isExist"){
+		from zipTree("$jreSrc") 
+	    into "dest" 
+	    doLast{    	
+	    	file("$buildLocation\\jre").mkdir()
+	    	copy{
+	    		from "dest\\jre"
+	    		into "$buildLocation\\jre"
+	    	}
+	    }
+	}
+  
 }
 
 task unzipJavaContainer(type: Copy,dependsOn:"copyJRE") {
@@ -177,7 +180,7 @@ def fileWrite(path, stringBuffer) {
 
 def modifyfile(path,oldStr,newStr,filename){
 	//backup the file
-	backfile(path,path,filename)
+	//backfile(path,path,filename)
 
 	//replace the server name 
 	def strBuffer = fileReader("$path\\$filename", oldStr, newStr);
@@ -186,7 +189,7 @@ def modifyfile(path,oldStr,newStr,filename){
 
 def modifyfileBySpec(path,oldStr,newStr,filename,key){
 	//backup the file
-	backfile(path,path,filename)
+	//backfile(path,path,filename)
 
 	//replace the server name 
 	def strBuffer = fileReader("$path\\$filename", oldStr, newStr,key);
@@ -220,11 +223,13 @@ task copyJavaContainer(dependsOn:copyswsmwar) {
 }
 
 
+
+
 def sieb="z:\\siebel\\javacontainer\\javacontainer-sieb"
 def gtwy="z:\\siebel\\javacontainer\\javacontainer-gtwy"
 def swsm="z:\\siebel\\javacontainer\\javacontainer-swsm"
 
-task resetProperty{
+task resetProperty(dependsOn:"copyJavaContainer"){
 	def readerString=""
 	def aiString=""
 	//def keys=["registryhostname=,registryusername=,registrypassword=,TLSGateway=,Gateway="].join("|")
@@ -285,124 +290,39 @@ task modifyfiles(dependsOn:"resetProperty"){
 
 	modifyfile("z:\\siebel\\bin\\w32ud","localhost","$server:4330","nsprime1.bat")
 	modifyfileBySpec("z:\\siebel\\bin","localhost","$server:4330","srvrdefs.dat","Param: DSConnectString")	
-}
 
-
-task runperl(type:Exec,dependsOn:"modifyfiles"){
-	workingDir = file("z:\\siebel\\bin")
-
-	println "start executing the first time"
-	commandLine = ['cmd', '/c', 'perl dbgsrvr.pl']
-
-	println "start executing the second time"
-	commandLine = ['cmd', '/c', 'perl dbgsrvr.pl']
 
 
 }
 
-
-
-task startZoo(type:Exec){
-	workingDir=file("z:\\siebel\\bin\\w32ud")
-	commandLine = ['cmd', '/c', 'set JAVA_HOME=Z:\\Siebel\\jre']
-	commandLine = ['cmd', '/c', 'start m:\\siebel\\src\\3rdparty\\zookeeper\\server\\bin\\zkServer.cmd']
-	ignoreExitValue true
-	standardOutput = new ByteArrayOutputStream()
-    ext.output = {    	
-        return standardOutput.toString()
-    }
-    doLast{
-    	println  "***************"
-    	println ext.output
-    	println "*****************"
-    }
-
-
+task init(type:Copy,dependsOn:"modifyfiles"){
+	file("Z:\\siebel\\bin\\w32ud\\bat").mkdir()
+	from "bat"
+	into "Z:\\siebel\\bin\\w32ud\\bat"
 }
 
-task starts3(type:Exec){
-	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-sieb\\bin")
 
-	file("$workingDir\\startup.bat") << "\nexit 0";
-	commandLine = ['cmd', '/c', 'startup.bat']
-	doLast{
-    
-    	 if(execResult.exitValue == 0) {
-            println "******************************star sieb server************************************"
-        } else {
-            println "Fail"
-        }
-    }
 
+
+task reset(dependsOn:"resetProperty"){
+	// copy{
+	// 	from "Z:\\siebel\\javacontainer\\javacontainer-gtwy\\webapps\\gateway.properties"
+	// 	into "dest\\bak"
+	// }
+
+	// copy{
+	// 	from "Z:\\siebel\\javacontainer\\javacontainer-swsm\\webapps\\applicationinterface.properties"
+	// 	into "dest\\bak"
+	// }
 	
-
-
-
 	
-}
-task starts1(type:Exec){
-	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-gtwy\\bin")
-	file("$workingDir\\startup.bat") << "\nexit 0";
-	commandLine = ['cmd', '/c', 'startup.bat']
-	doLast{
-    
-    	 if(execResult.exitValue == 0) {
-            println "**************************start gtwy server******************************************"
-        } else {
-            println "Fail"
-        }
-    }
-
-}
-
-
-task starts2(type:Exec){
-	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-swsm\\bin")
-	file("$workingDir\\startup.bat") << "\nexit 0";
-	commandLine = ['cmd', '/c', 'startup.bat']
-
-	doLast{
-    
-    	 if(execResult.exitValue == 0) {
-            println "*****************************start swsm server**************************************"
-        } else {
-            println "Fail"
-        }
-    }
-
-}
-
-
-
-task init(type:Exec){
-
-	workingDir=file("z:\\siebel\\bin\\w32ud")
-	commandLine = ['cmd', '/c', 'nsprime1.bat']
-
-}
-
-
-
-task reset(type:Exec,dependsOn:"resetProperty"){
-	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-sieb\\bin")
-
-	file("$workingDir\\shutdown.bat") << "\nexit 0";
-	commandLine = ['cmd', '/c', 'shutdown.bat']
-
-	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-gtwy\\bin")
-	file("$workingDir\\shutdown.bat") << "\nexit 0";
-	commandLine = ['cmd', '/c', 'shutdown.bat']
-
-	workingDir=file("z:\\siebel\\javacontainer\\javacontainer-swsm\\bin")
-	file("$workingDir\\shutdown.bat") << "\nexit 0";
-	commandLine = ['cmd', '/c', 'shutdown.bat']
-
-	workingDir=file("z:\\siebel\\bin")
-	commandLine = ['cmd', '/c', 'Taskkill /IM javaw.exe /F']
-	commandLine = ['cmd', '/c', 'Taskkill /IM java.exe /F']
-
 	delete fileTree("z:\\siebel\\bin\\version-2")
-	
+
+	doLast{
+		println "reset successfully"
+	}
+
+
 }
 
 
