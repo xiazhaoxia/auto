@@ -37,8 +37,9 @@ task copyWorkAround(type:Copy){
 
 
 task copyJRE(type: Copy,dependsOn:"copyWorkAround") {
-	def isExist=file("$buildLocation\\jre").exists()
-	if(!"$isExist"){
+	
+	if(file("$buildLocation\\jre").exists()){
+	}else{
 		from zipTree("$jreSrc") 
 	    into "dest" 
 	    doLast{    	
@@ -215,11 +216,14 @@ def backfile(src,target,name){
 
 task copyJavaContainer(dependsOn:copyswsmwar) {	
 	//if target folder is readOnly, you should create target folder before copying the file
-	file("$javacontainerTarget").mkdirs()
-	copy{
-		from "$javacontainer"
-		into "$javacontainerTarget"
-	}	
+	if(!file("$javacontainerTarget").exists()){
+		file("$javacontainerTarget").mkdirs()
+		copy{
+			from "$javacontainer"
+			into "$javacontainerTarget"
+		}	
+	}
+	
 }
 
 
@@ -295,6 +299,10 @@ task modifyfiles(dependsOn:"resetProperty"){
 
 }
 
+task modifySr{
+	file("Z:\\siebel\\bin\\w32ud\\bat") 
+}
+
 task init(type:Copy,dependsOn:"modifyfiles"){
 	file("Z:\\siebel\\bin\\w32ud\\bat").mkdir()
 	from "bat"
@@ -304,24 +312,8 @@ task init(type:Copy,dependsOn:"modifyfiles"){
 
 
 
-task reset(dependsOn:"resetProperty"){
-	// copy{
-	// 	from "Z:\\siebel\\javacontainer\\javacontainer-gtwy\\webapps\\gateway.properties"
-	// 	into "dest\\bak"
-	// }
-
-	// copy{
-	// 	from "Z:\\siebel\\javacontainer\\javacontainer-swsm\\webapps\\applicationinterface.properties"
-	// 	into "dest\\bak"
-	// }
-	
-	
+task reset(type:Delete){		
 	delete fileTree("z:\\siebel\\bin\\version-2")
-
-	doLast{
-		println "reset successfully"
-	}
-
 
 }
 
