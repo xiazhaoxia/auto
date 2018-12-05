@@ -35,8 +35,8 @@ echo "go next if the server is up"
 pause
 
 cd Z:\siebel\javacontainer\javacontainer-sieb\bin
-call "starup.bat"
-echo  "go next to config the AI"
+call "startup.bat"
+echo  "open 'https://<your server>.us.oracle.com:16690/siebel/smc' to config the AI"
 pause
 
 cd \siebel\bin\w32ud
