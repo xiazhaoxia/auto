@@ -40,7 +40,7 @@ task initConfig{
 					println v
 					//println fileTree(v).list()
 				}else if(k.contains("BUILD_NUM")){
-					buildVersion=v
+					buildVersion=v.trim()
 					println buildVersion
 				}
 
@@ -54,14 +54,12 @@ task initConfig{
 }
 
 task copyWorkAround(type:Copy,dependsOn:"initConfig"){
-	if("$buildVersion"=="23088"){
-		
+	if("$buildVersion"=="23088"){		
 		from file("\\\\slc12ecr.us.oracle.com\\ting\\shared\\dll_23088")
-		into "z:\\siebel\\bin\\w32ud"
+		into "dest\\$buildVersion"
 		doLast{
 			println "copy workaround for $buildVersion"
 		}
-
 	}
 }
 
@@ -284,8 +282,9 @@ task modifysrdat{
 	def aipro=file("z:\\siebel\\bin\\srvrdefs.dat")
 	def aireader=aipro.withReader('UTF-8') { reader ->
 			reader.eachLine {
-				it=it.replaceAll(/^Param: DSConnectString(.*)=(.*)4330/) { match ->
-					"Param: DSConnectString = localhost:4330"
+				it=it.replaceAll(/^Param: DSConnectString(.*)=(.*)(.*:4330|slc.*|localhost)/) { match ->
+					def v=it.split("=")
+					it=v[0]+"="+"$server:4330"
 					
 				}
 				aiString <<= it
@@ -320,6 +319,7 @@ task run(type:Copy,dependsOn:"modifyfiles"){
 	file("Z:\\siebel\\bin\\w32ud\\bat").mkdir()
 	from "bat"
 	into "Z:\\siebel\\bin\\w32ud\\bat"
+
 }
 
 
