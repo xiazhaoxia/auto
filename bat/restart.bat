@@ -1,5 +1,5 @@
-START:
-cd Z:\siebel\javacontainer\javacontainer-sieb\bin
+z:
+cd \siebel\javacontainer\javacontainer-sieb\bin
 call "shutdown.bat"
 echo "******************shutdown the sieb Server******************s"
 pause
