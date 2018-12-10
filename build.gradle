@@ -55,8 +55,14 @@ task initConfig{
 
 task copyWorkAround(type:Copy,dependsOn:"initConfig"){
 	if("$buildVersion"=="23088"){		
-		from file("\\\\slc12ecr.us.oracle.com\\ting\\shared\\dll_23088")
+		from "\\\\slc12ecr.us.oracle.com\\ting\\shared\\dll_23088"
 		into "dest\\$buildVersion"
+
+		from file("\\\\slc12ecr.us.oracle.com\\ting\\shared"){
+			include "siebel.war"
+		}
+		into "dest\\$buildVersion"
+
 		doLast{
 			println "copy workaround for $buildVersion"
 		}
@@ -159,6 +165,10 @@ task copyswsmwar(type:Copy,dependsOn:copygtwywar,description:"copy Siebel war to
 		exclude "server.xml"
 	}	
 	into "$swsmTarget\\webapps"
+	if(buildVersion=="23088"){
+		from "dest\\23088"
+		into "$swsmTarget\\webapps"
+	}
 }
 
 
