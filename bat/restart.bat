@@ -1,4 +1,7 @@
 z:
+echo "******************CTRL+C quit the siebel server ******************s"
+pause
+
 cd \siebel\javacontainer\javacontainer-sieb\bin
 call "shutdown.bat"
 echo "******************shutdown the sieb Server******************s"
