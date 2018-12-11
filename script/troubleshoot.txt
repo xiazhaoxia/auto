@@ -1,0 +1,10 @@
+1.server busy
+	--check if the component up
+	--list proc  --check if the component running in real
+	--clear your browser's cache
+
+2.After configuring the AI , still can't redirect to the application page
+	--Be make sure your sieb server is up.Then config the AI.
+	--check log ,if found "shared memory error", double check the AI configuration especially where config the SADMIN/MSSQL
+
+3.change evtloglvl %=5 for comp BatchSync

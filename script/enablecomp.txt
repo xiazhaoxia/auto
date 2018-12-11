@@ -11,7 +11,7 @@ change param HighInteractivity=TRUE for comp ePharmamObjMgr_enu
 shutdown comp ePharmamObjMgr_enu
 start comp ePharmamObjMgr_enu
 
-start task for comp DbXtract server slc12eex with Client=SPORTER-MOBILE, move=true
+start task for comp DbXtract server slc11apu with Client=SPORTER-MOBILE, move=true
 
 /**************************CGM****************************************************/
 change param MobileApplication=TRUE for comp CGMObjMgr_enu
@@ -26,14 +26,11 @@ shutdown comp CGMObjMgr_enu
 start comp CGMObjMgr_enu
 
 // please add syncnode in callcenter
-// callcenter->Administration-Siebel Mobile->Mobile Client-> Add new record
-start task for comp DbXtract server slc12eex with Client=KDRESEL-MOBILE, move=true
+1. callcenter->Administration-Siebel Mobile->Mobile Client-> Add new record for KDRESEL-MOBILE
+2. callcenter->Administration-Siebel Mobile->Application Administration-> Settings(hhsync\cgm) && Data Extraction Component(CGMDbXtract)
+3. callcenter->Administration->Server Configuration->Component Definitions-> Search "Compnent ->'eCG'"-> choose "eCG Sales Mobile Data Extraction (ENU)"  click "synchronize"->restart siebel server (app server)
 
--->callcenter->configuration->component definition
-	--select component "eCG"
-	--choose "eCG Sales Mobile Data Extraction (ENU)"
-	--click "Synchronize"	
-	--restart siebel server
+start task for comp DbXtract server slc11apu with Client=KDRESEL-MOBILE, move=true
 
 
 list task for comp CGMDbXtract_enu
@@ -42,3 +39,4 @@ list task for comp BatchSync
 
 /*****************************unzip *************/
 Z:\siebel\javacontainer\javacontainer-swsm\webapps\siebel\scripts\WinZip-extract-3rdparty.bat
+
