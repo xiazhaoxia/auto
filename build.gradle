@@ -56,13 +56,10 @@ task initConfig{
 task copyWorkAround(type:Copy,dependsOn:"initConfig"){
 	if("$buildVersion"=="23088"){		
 		from "\\\\slc12ecr.us.oracle.com\\ting\\shared\\dll_23088"
+		from "\\\\slc12ecr.us.oracle.com\\ting\\shared"
+		include "siebel.war"
+		
 		into "dest\\$buildVersion"
-
-		from file("\\\\slc12ecr.us.oracle.com\\ting\\shared"){
-			include "siebel.war"
-		}
-		into "dest\\$buildVersion"
-
 		doLast{
 			println "copy workaround for $buildVersion"
 		}
@@ -165,17 +162,26 @@ task copyswsmwar(type:Copy,dependsOn:copygtwywar,description:"copy Siebel war to
 		exclude "server.xml"
 	}	
 	into "$swsmTarget\\webapps"
+
+}
+
+task copywar(type:Copy,dependsOn:"copyswsmwar"){
+	println "before $buildVersion"
 	if(buildVersion=="23088"){
-		from "dest\\23088"
+		println "$buildVersion"
+		from ("dest\\23088"){
+			include "*.war"
+		}
 		into "$swsmTarget\\webapps"
 	}
 }
 
 
-
 task copyJavaContainer(dependsOn:copyswsmwar) {	
 	//if target folder is readOnly, you should create target folder before copying the file
 	try{
+		dependsOn "copywar"
+
 		delete file("$javacontainerTarget")
 		
 		file("$javacontainerTarget").mkdirs()
@@ -183,6 +189,12 @@ task copyJavaContainer(dependsOn:copyswsmwar) {
 			from "$javacontainer"
 			into "$javacontainerTarget"
 		}	
+
+		doLast{
+			if(fileTree("$javacontainerTarget")){
+				println "copy javacontainer successfully"
+			}
+		}
 	}catch(Exception e){
 		println e
 	}
@@ -260,7 +272,7 @@ task resetProperty{
 }
 
 
-task modifyfiles(dependsOn:["copyJavaContainer"]){
+task modifyfiles(dependsOn:"copyJavaContainer"){
 	dependsOn "resetProperty"
 	dependsOn "modifyns"
 	dependsOn "modifysrdat"
@@ -347,7 +359,7 @@ task reset{
 	dependsOn "shudownServer"
 	dependsOn "resetProperty"	
 
-	delete fileTree("z:\\siebel\\bin\\version-2")	
+	//delete fileTree("z:\\siebel\\bin\\version-2")	
 }
 
 
